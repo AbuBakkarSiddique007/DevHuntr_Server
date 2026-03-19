@@ -1,0 +1,87 @@
+import bcrypt from "bcryptjs";
+import jwt, { type SignOptions } from "jsonwebtoken";
+import { StatusCodes } from "http-status-codes";
+import { prisma } from "../../lib/prisma";
+import { envVars } from "../../config/env";
+import AppError from "../../errorHelpers/AppError";
+import {
+    type AuthResponse,
+    type AuthTokenPayload,
+    type LoginInput,
+    type RegisterInput,
+} from "./auth.interface";
+
+
+const createToken = (payload: AuthTokenPayload): string => {
+    const secret = envVars.JWT_SECRET;
+    const expiresIn = (envVars.JWT_EXPIRES_IN || "15m") as SignOptions["expiresIn"];
+
+    return jwt.sign(payload, secret, { expiresIn });
+};
+
+
+const register = async (payload: RegisterInput): Promise<AuthResponse> => {
+
+    const existing = await prisma.user.findUnique({ where: { email: payload.email } });
+
+    if (existing) {
+        throw new AppError(StatusCodes.CONFLICT, "User already exists with this email");
+    }
+
+    const hashedPassword = await bcrypt.hash(payload.password, 10);
+
+    const user = await prisma.user.create({
+        data: {
+            name: payload.name,
+            email: payload.email,
+            password: hashedPassword,
+            photoUrl: payload.photoUrl,
+        },
+    });
+
+    const token = createToken({ userId: user.id, role: user.role });
+
+    const { password: _password, ...userWithoutPassword } = user;
+
+    void _password;
+
+
+    return {
+        token,
+        user: userWithoutPassword
+    };
+};
+
+
+
+const login = async (payload: LoginInput): Promise<AuthResponse> => {
+
+    const user = await prisma.user.findUnique({ where: { email: payload.email } });
+
+    if (!user) {
+        throw new AppError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
+    }
+
+    const isMatch = await bcrypt.compare(payload.password, user.password);
+
+    if (!isMatch) {
+        throw new AppError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
+    }
+
+    const token = createToken({ userId: user.id, role: user.role });
+
+    const { password: _password, ...userWithoutPassword } = user;
+
+    void _password;
+
+    return {
+        token,
+        user: userWithoutPassword
+    };
+};
+
+export const AuthServer = {
+    register,
+    login,
+};
+
