@@ -14,7 +14,7 @@ import {
 
 const createToken = (payload: AuthTokenPayload): string => {
     const secret = envVars.JWT_SECRET;
-    const expiresIn = (envVars.JWT_EXPIRES_IN || "15m") as SignOptions["expiresIn"];
+    const expiresIn = (envVars.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"];
 
     return jwt.sign(payload, secret, { expiresIn });
 };
@@ -22,7 +22,11 @@ const createToken = (payload: AuthTokenPayload): string => {
 
 const register = async (payload: RegisterInput): Promise<AuthResponse> => {
 
-    const existing = await prisma.user.findUnique({ where: { email: payload.email } });
+    const existing = await prisma.user.findUnique({ 
+        where: { 
+            email: payload.email 
+        } 
+    });
 
     if (existing) {
         throw new AppError(StatusCodes.CONFLICT, "User already exists with this email");
@@ -56,7 +60,11 @@ const register = async (payload: RegisterInput): Promise<AuthResponse> => {
 
 const login = async (payload: LoginInput): Promise<AuthResponse> => {
 
-    const user = await prisma.user.findUnique({ where: { email: payload.email } });
+    const user = await prisma.user.findUnique({ 
+        where: { 
+            email: payload.email 
+        } 
+    });
 
     if (!user) {
         throw new AppError(StatusCodes.UNAUTHORIZED, "Invalid email or password");

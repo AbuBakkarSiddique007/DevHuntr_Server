@@ -35,19 +35,28 @@ const validateRequest = (schema: ValidateSchema): RequestHandler => {
             if (schemas.body) {
                 const bodyResult = schemas.body.safeParse(unwrapBodyData(req.body ?? {}));
                 if (!bodyResult.success) return next(bodyResult.error);
+
                 req.body = bodyResult.data;
             }
 
             if (schemas.query) {
                 const queryResult = schemas.query.safeParse(req.query);
+
                 if (!queryResult.success) return next(queryResult.error);
-                req.query = queryResult.data as unknown as typeof req.query;
+
+                if (req.query && typeof req.query === "object") {
+                    Object.assign(req.query as Record<string, unknown>, queryResult.data as Record<string, unknown>);
+                }
             }
 
             if (schemas.params) {
                 const paramsResult = schemas.params.safeParse(req.params);
+
                 if (!paramsResult.success) return next(paramsResult.error);
-                req.params = paramsResult.data as unknown as typeof req.params;
+
+                if (req.params && typeof req.params === "object") {
+                    Object.assign(req.params as Record<string, unknown>, paramsResult.data as Record<string, unknown>);
+                }
             }
 
             return next();
