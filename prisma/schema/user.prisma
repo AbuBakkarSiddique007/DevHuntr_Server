@@ -15,6 +15,7 @@ model User {
 	products      Product[] @relation("UserProducts")
 	moderatedProducts Product[] @relation("ModeratedProducts")
 	createdTags   Tag[]
+	comments     Comment[]
 	createdAt    DateTime @default(now())
 	updatedAt    DateTime @updatedAt
 }

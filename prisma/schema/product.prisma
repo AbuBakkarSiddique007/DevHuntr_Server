@@ -21,6 +21,7 @@ model Product {
 	ownerId        String
 	owner          User          @relation("UserProducts", fields: [ownerId], references: [id], onDelete: Cascade)
 	productTags    ProductTag[]
+	comments       Comment[]
 	createdAt      DateTime      @default(now())
 	updatedAt      DateTime      @updatedAt
 }
