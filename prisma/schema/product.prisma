@@ -1,0 +1,45 @@
+enum ProductStatus {
+	PENDING
+	ACCEPTED
+	REJECTED
+}
+
+model Product {
+	id             String        @id @default(uuid())
+	name           String
+	image          String
+	description    String
+	externalLink   String
+	upvoteCount    Int           @default(0)
+	downvoteCount  Int           @default(0)
+	status         ProductStatus @default(PENDING)
+	moderatedById  String?
+	moderatedBy    User?         @relation("ModeratedProducts", fields: [moderatedById], references: [id], onDelete: SetNull)
+	moderatedAt    DateTime?
+	rejectionReason String?
+	isFeatured     Boolean       @default(false)
+	ownerId        String
+	owner          User          @relation("UserProducts", fields: [ownerId], references: [id], onDelete: Cascade)
+	productTags    ProductTag[]
+	createdAt      DateTime      @default(now())
+	updatedAt      DateTime      @updatedAt
+}
+
+model Tag {
+	id          String       @id @default(uuid())
+	name        String       @unique
+	createdById String?
+	createdBy   User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+	productTags ProductTag[]
+	createdAt   DateTime     @default(now())
+}
+
+model ProductTag {
+	id        String  @id @default(uuid())
+	productId String
+	product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+	tagId     String
+	tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+	@@unique([productId, tagId])
+}

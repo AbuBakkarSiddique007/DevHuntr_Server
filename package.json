@@ -13,6 +13,7 @@
     "push": "prisma db push",
     "pull": "prisma db pull",
     "seed:admin": "tsx src/app/seed/seedAdmin.ts",
+    "seed:tags": "tsx src/app/seed/seedTags.ts",
     "lint": "eslint ./src/**/*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

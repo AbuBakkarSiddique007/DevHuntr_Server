@@ -12,6 +12,9 @@ model User {
 	photoUrl     String?
 	role         Role     @default(USER)
 	isSubscribed Boolean  @default(false)
+	products      Product[] @relation("UserProducts")
+	moderatedProducts Product[] @relation("ModeratedProducts")
+	createdTags   Tag[]
 	createdAt    DateTime @default(now())
 	updatedAt    DateTime @updatedAt
 }
