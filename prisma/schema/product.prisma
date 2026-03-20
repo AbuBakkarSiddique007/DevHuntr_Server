@@ -21,6 +21,7 @@ model Product {
 	productTags    ProductTag[]
 	comments       Comment[]
 	votes          Vote[]
+	reports        Report[]
 	createdAt      DateTime      @default(now())
 	updatedAt      DateTime      @updatedAt
 	upvoteCount    Int           @default(0)

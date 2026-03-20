@@ -17,6 +17,7 @@ model User {
 	createdTags   Tag[]
 	comments     Comment[]
 	votes        Vote[]
+	reports      Report[]
 	createdAt    DateTime @default(now())
 	updatedAt    DateTime @updatedAt
 }
