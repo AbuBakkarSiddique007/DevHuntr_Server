@@ -1,19 +1,35 @@
 import { Router } from "express";
 import validateRequest from "../../middlewares/validateRequest";
 import verifyToken from "../../middlewares/verifyToken";
+import verifyModerator from "../../middlewares/verifyModerator";
 import { ProductController } from "./product.controller";
 import {
     createProductSchema,
     listAcceptedProductsQuerySchema,
+    listFeedProductsQuerySchema,
+    listPendingProductsQuerySchema,
     listMyProductsQuerySchema,
     productIdParamsSchema,
     updateProductSchema,
+    updateProductStatusSchema,
 } from "./product.validation";
 
 const router = Router();
 
 // Public : 
 router.get("/", validateRequest({ query: listAcceptedProductsQuerySchema }), ProductController.listAcceptedProducts);
+
+router.get(
+    "/featured",
+    validateRequest({ query: listFeedProductsQuerySchema }),
+    ProductController.listFeaturedProducts,
+);
+
+router.get(
+    "/trending",
+    validateRequest({ query: listFeedProductsQuerySchema }),
+    ProductController.listTrendingProducts,
+);
 
 
 // Protected : 
@@ -23,6 +39,30 @@ router.get(
     verifyToken,
     validateRequest({ query: listMyProductsQuerySchema }),
     ProductController.listMyProducts,
+);
+
+router.get(
+    "/queue",
+    verifyToken,
+    verifyModerator,
+    validateRequest({ query: listPendingProductsQuerySchema }),
+    ProductController.listPendingProducts,
+);
+
+router.patch(
+    "/:id/status",
+    verifyToken,
+    verifyModerator,
+    validateRequest({ params: productIdParamsSchema, body: updateProductStatusSchema }),
+    ProductController.updateProductStatus,
+);
+
+router.patch(
+    "/:id/feature",
+    verifyToken,
+    verifyModerator,
+    validateRequest({ params: productIdParamsSchema }),
+    ProductController.toggleProductFeatured,
 );
 
 router.get("/:id", validateRequest({ params: productIdParamsSchema }), ProductController.getProductById);

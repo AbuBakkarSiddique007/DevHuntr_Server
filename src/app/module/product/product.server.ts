@@ -9,6 +9,7 @@ import type {
     CreateProductInput,
     ListAcceptedProductsQuery,
     UpdateProductInput,
+    UpdateProductStatusInput,
 } from "./product.interface";
 
 const productInclude = {
@@ -111,6 +112,101 @@ const listAcceptedProducts = async (query: ListAcceptedProductsQuery) => {
     };
 };
 
+const listFeaturedProducts = async (page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = {
+        status: ProductStatus.ACCEPTED,
+        isFeatured: true,
+    };
+
+
+    const [total, products] = await Promise.all([
+        prisma.product.count({ where }),
+
+        prisma.product.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: {
+                createdAt: "desc"
+            },
+
+            include: productInclude,
+        }),
+    ]);
+
+
+    return {
+        meta: { page, limit, total },
+        products: products.map(toProductResponse),
+    };
+};
+
+const listTrendingProducts = async (page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [total, ranked] = await Promise.all([
+        prisma.product.count({
+            where:
+            {
+                status: ProductStatus.ACCEPTED
+
+            }
+        }),
+
+
+        // 
+        prisma.$queryRaw<Array<{ id: string; netVotes: number }>>(
+            Prisma.sql`
+                SELECT
+                    p.id AS id,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN v."voteType" = 'UPVOTE' THEN 1
+                                WHEN v."voteType" = 'DOWNVOTE' THEN -1
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    )::int AS "netVotes"
+                FROM "Product" p
+                LEFT JOIN "Vote" v
+                    ON v."productId" = p.id
+                    AND v."createdAt" >= ${since}
+                WHERE p."status" = 'ACCEPTED'
+                GROUP BY p.id
+                ORDER BY "netVotes" DESC, p."createdAt" DESC
+                LIMIT ${limit} OFFSET ${skip}
+            `,
+        ),
+    ]);
+
+
+    const ids = ranked.map((r) => r.id);
+    if (!ids.length) {
+        return {
+            meta: { page, limit, total },
+            products: [],
+        };
+    }
+
+    const products = await prisma.product.findMany({
+        where: { id: { in: ids } },
+        include: productInclude,
+    });
+
+    const byId = new Map(products.map((p) => [p.id, p] as const));
+    const ordered = ids.map((id) => byId.get(id)).filter(Boolean) as ProductWithRelations[];
+
+    return {
+        meta: { page, limit, total },
+        products: ordered.map(toProductResponse),
+    };
+};
+
 const listMyProducts = async (ownerId: string, page = 1, limit = 10) => {
     const skip = (page - 1) * limit;
 
@@ -124,6 +220,31 @@ const listMyProducts = async (ownerId: string, page = 1, limit = 10) => {
             take: limit,
             orderBy: {
                 createdAt: "desc"
+            },
+            include: productInclude,
+        }),
+    ]);
+
+    return {
+        meta: { page, limit, total },
+        products: products.map(toProductResponse),
+    };
+};
+
+const listPendingProducts = async (page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = { status: ProductStatus.PENDING };
+
+    const [total, products] = await Promise.all([
+        prisma.product.count({ where }),
+
+        prisma.product.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: {
+                createdAt: "asc",
             },
             include: productInclude,
         }),
@@ -210,6 +331,86 @@ const updateProduct = async (productId: string, userId: string, payload: UpdateP
     return toProductResponse(updated);
 };
 
+const updateProductStatus = async (
+    productId: string,
+    moderatorId: string,
+    payload: UpdateProductStatusInput,
+) => {
+    const existing = await prisma.product.findUnique({
+
+        where: {
+            id: productId
+        },
+
+        select: {
+            id: true,
+            status: true
+        },
+
+    });
+
+    if (!existing) throw new AppError(StatusCodes.NOT_FOUND, "Product not found");
+
+
+    if (existing.status !== ProductStatus.PENDING) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "Only PENDING products can be moderated");
+    }
+
+
+    const nextStatus = payload.status === "ACCEPTED" ? ProductStatus.ACCEPTED : ProductStatus.REJECTED;
+
+
+    const updated = await prisma.product.update({
+        where: { id: productId },
+        data: {
+            status: nextStatus,
+            moderatedById: moderatorId,
+            moderatedAt: new Date(),
+            rejectionReason: payload.status === "REJECTED" ? payload.rejectionReason : null,
+            isFeatured: payload.status === "REJECTED" ? false : undefined,
+        },
+        include: productInclude,
+    });
+
+    return toProductResponse(updated);
+};
+
+const toggleProductFeatured = async (productId: string) => {
+    const updated = await prisma.$transaction(async (tx) => {
+        const product = await tx.product.findUnique({
+            where: {
+                id: productId
+            },
+
+            select: {
+                id: true,
+                status: true,
+                isFeatured: true
+            },
+
+        });
+
+        if (!product) throw new AppError(StatusCodes.NOT_FOUND, "Product not found");
+
+        if (product.status !== ProductStatus.ACCEPTED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Only ACCEPTED products can be featured");
+        }
+
+        return tx.product.update({
+            where: {
+                id: productId
+            },
+            data: {
+                isFeatured: !product.isFeatured
+            },
+
+            include: productInclude,
+        });
+    });
+
+    return toProductResponse(updated);
+};
+
 const deleteProduct = async (productId: string, requester: { userId: string; role: Role }) => {
     const product = await prisma.product.findUnique({
         where: {
@@ -233,15 +434,25 @@ const deleteProduct = async (productId: string, requester: { userId: string; rol
         throw new AppError(StatusCodes.FORBIDDEN, "You are not allowed to delete this product");
     }
 
-    await prisma.product.delete({ where: { id: productId } });
+    await prisma.product.delete({
+        where: {
+            id: productId
+        }
+    });
+
     return null;
 };
 
 export const ProductServer = {
     createProduct,
     listAcceptedProducts,
+    listFeaturedProducts,
+    listTrendingProducts,
     listMyProducts,
+    listPendingProducts,
     getProductById,
     updateProduct,
+    updateProductStatus,
+    toggleProductFeatured,
     deleteProduct,
 };

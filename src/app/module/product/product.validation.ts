@@ -27,7 +27,40 @@ export const listAcceptedProductsQuerySchema = z.object({
   tag: z.string().min(1).optional(),
 });
 
+export const listFeedProductsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+});
+
 export const listMyProductsQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
 });
+
+export const listPendingProductsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+});
+
+export const updateProductStatusSchema = z
+  .object({
+    status: z.enum(["ACCEPTED", "REJECTED"]),
+    rejectionReason: z.string().min(1).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.status === "REJECTED" && !value.rejectionReason) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["rejectionReason"],
+        message: "rejectionReason is required when rejecting a product",
+      });
+    }
+
+    if (value.status === "ACCEPTED" && value.rejectionReason) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["rejectionReason"],
+        message: "rejectionReason must be omitted when accepting a product",
+      });
+    }
+  });

@@ -10,6 +10,16 @@ export interface ListMyProductsQuery {
   limit?: number;
 }
 
+export interface ListFeedProductsQuery {
+  page?: number;
+  limit?: number;
+}
+
+export interface ListPendingProductsQuery {
+  page?: number;
+  limit?: number;
+}
+
 export interface CreateProductInput {
   name: string;
   image: string;
@@ -19,3 +29,8 @@ export interface CreateProductInput {
 }
 
 export type UpdateProductInput = Partial<CreateProductInput>;
+
+export type UpdateProductStatusInput = {
+  status: "ACCEPTED" | "REJECTED";
+  rejectionReason?: string;
+};

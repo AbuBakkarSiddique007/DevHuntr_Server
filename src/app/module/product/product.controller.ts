@@ -3,7 +3,13 @@ import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { ProductServer } from "./product.server";
 import AppError from "../../errorHelpers/AppError";
-import type { ListAcceptedProductsQuery, ListMyProductsQuery } from "./product.interface";
+import type {
+    ListAcceptedProductsQuery,
+    ListFeedProductsQuery,
+    ListMyProductsQuery,
+    ListPendingProductsQuery,
+    UpdateProductStatusInput,
+} from "./product.interface";
 
 const createProduct = catchAsync(async (req, res) => {
     const ownerId = req.user!.userId;
@@ -33,6 +39,38 @@ const listAcceptedProducts = catchAsync(async (req, res) => {
 });
 
 
+const listFeaturedProducts = catchAsync(async (req, res) => {
+    const query = req.query as ListFeedProductsQuery;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+
+    const result = await ProductServer.listFeaturedProducts(page, limit);
+
+    sendResponse(res, {
+        httpStatusCode: StatusCodes.OK,
+        success: true,
+        message: "Featured products fetched successfully",
+        data: result,
+    });
+});
+
+const listTrendingProducts = catchAsync(async (req, res) => {
+    const query = req.query as ListFeedProductsQuery;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const result = await ProductServer.listTrendingProducts(page, limit);
+
+    sendResponse(res, {
+        httpStatusCode: StatusCodes.OK,
+        success: true,
+        message: "Trending products fetched successfully",
+        data: result,
+    });
+});
+
+
 const listMyProducts = catchAsync(async (req, res) => {
     const ownerId = req.user!.userId;
     const query = req.query as ListMyProductsQuery;
@@ -45,6 +83,21 @@ const listMyProducts = catchAsync(async (req, res) => {
         httpStatusCode: StatusCodes.OK,
         success: true,
         message: "My products fetched successfully",
+        data: result,
+    });
+});
+
+const listPendingProducts = catchAsync(async (req, res) => {
+    const query = req.query as ListPendingProductsQuery;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const result = await ProductServer.listPendingProducts(page, limit);
+
+    sendResponse(res, {
+        httpStatusCode: StatusCodes.OK,
+        success: true,
+        message: "Pending products fetched successfully",
         data: result,
     });
 });
@@ -91,6 +144,46 @@ const updateProduct = catchAsync(async (req, res) => {
     });
 });
 
+const updateProductStatus = catchAsync(async (req, res) => {
+    const idParam = req.params.id;
+    const id = Array.isArray(idParam) ? idParam[0] : idParam;
+
+
+    if (!id) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "Invalid product id");
+    }
+
+    const moderatorId = req.user!.userId;
+    const payload = req.body as UpdateProductStatusInput;
+
+    const updated = await ProductServer.updateProductStatus(id, moderatorId, payload);
+
+    sendResponse(res, {
+        httpStatusCode: StatusCodes.OK,
+        success: true,
+        message: "Product status updated successfully",
+        data: updated,
+    });
+});
+
+const toggleProductFeatured = catchAsync(async (req, res) => {
+    const idParam = req.params.id;
+    const id = Array.isArray(idParam) ? idParam[0] : idParam;
+
+    if (!id) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "Invalid product id");
+    }
+
+    const updated = await ProductServer.toggleProductFeatured(id);
+
+    sendResponse(res, {
+        httpStatusCode: StatusCodes.OK,
+        success: true,
+        message: "Product featured status toggled successfully",
+        data: updated,
+    });
+});
+
 const deleteProduct = catchAsync(async (req, res) => {
     const idParam = req.params.id;
 
@@ -115,8 +208,13 @@ const deleteProduct = catchAsync(async (req, res) => {
 export const ProductController = {
     createProduct,
     listAcceptedProducts,
+    listFeaturedProducts,
+    listTrendingProducts,
     listMyProducts,
+    listPendingProducts,
     getProductById,
     updateProduct,
+    updateProductStatus,
+    toggleProductFeatured,
     deleteProduct,
 };
