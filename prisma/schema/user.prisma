@@ -1,24 +1,25 @@
 enum Role {
-	USER
-	MODERATOR
-	ADMIN
+    USER
+    MODERATOR
+    ADMIN
 }
 
 model User {
-	id           String   @id @default(uuid())
-	name         String
-	email        String   @unique
-	password     String
-	photoUrl     String?
-	role         Role     @default(USER)
-	isSubscribed Boolean  @default(false)
-	products      Product[] @relation("UserProducts")
-	moderatedProducts Product[] @relation("ModeratedProducts")
-	createdTags   Tag[]
-	comments     Comment[]
-	votes        Vote[]
-	reports      Report[]
-	createdCoupons Coupon[]
-	createdAt    DateTime @default(now())
-	updatedAt    DateTime @updatedAt
+    id                String    @id @default(uuid())
+    name              String
+    email             String    @unique
+    password          String
+    photoUrl          String?
+    role              Role      @default(USER)
+    isSubscribed      Boolean   @default(false)
+    products          Product[] @relation("UserProducts")
+    moderatedProducts Product[] @relation("ModeratedProducts")
+    createdTags       Tag[]
+    comments          Comment[]
+    votes             Vote[]
+    reports           Report[]  @relation("UserReports")
+    resolvedReports   Report[]  @relation("ResolvedReports")
+    createdCoupons    Coupon[]
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @updatedAt
 }

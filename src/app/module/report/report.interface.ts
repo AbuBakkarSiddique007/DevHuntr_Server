@@ -6,4 +6,9 @@ export interface CreateReportInput {
 export interface ListReportsQuery {
   page?: number;
   limit?: number;
+  status?: "OPEN" | "RESOLVED" | "DISMISSED";
 }
+
+export type UpdateReportStatusInput = {
+  status: "RESOLVED" | "DISMISSED";
+};

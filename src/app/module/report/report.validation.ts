@@ -12,4 +12,9 @@ export const reportIdParamsSchema = z.object({
 export const listReportsQuerySchema = z.object({
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().max(100).optional(),
+    status: z.enum(["OPEN", "RESOLVED", "DISMISSED"]).optional(),
+});
+
+export const updateReportStatusSchema = z.object({
+    status: z.enum(["RESOLVED", "DISMISSED"]),
 });

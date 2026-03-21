@@ -1,8 +1,9 @@
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
+import { Prisma } from "../../../generated/prisma/client";
 
-import type { CreateReportInput, ListReportsQuery } from "./report.interface";
+import type { CreateReportInput, ListReportsQuery, UpdateReportStatusInput } from "./report.interface";
 
 const createReport = async (reporterId: string, payload: CreateReportInput) => {
 
@@ -59,10 +60,15 @@ const listReports = async (query: ListReportsQuery) => {
     const limit = query.limit ?? 10;
     const skip = (page - 1) * limit;
 
+    const where: Prisma.ReportWhereInput = {
+        status: query.status ?? "OPEN",
+    };
+
 
     const [total, reports] = await Promise.all([
-        prisma.report.count(),
+        prisma.report.count({ where }),
         prisma.report.findMany({
+            where,
             skip,
             take: limit,
             orderBy: {
@@ -78,6 +84,16 @@ const listReports = async (query: ListReportsQuery) => {
                         photoUrl: true,
                         role: true
                     }
+                },
+
+                resolvedBy: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        photoUrl: true,
+                        role: true,
+                    },
                 },
 
                 product: {
@@ -98,6 +114,64 @@ const listReports = async (query: ListReportsQuery) => {
         meta: { page, limit, total },
         reports,
     };
+};
+
+const updateReportStatus = async (
+    id: string,
+    moderatorId: string,
+    payload: UpdateReportStatusInput,
+) => {
+    const existing = await prisma.report.findUnique({
+        where: { id },
+        select: { id: true },
+    });
+
+    if (!existing) {
+        throw new AppError(StatusCodes.NOT_FOUND, "Report not found");
+    }
+
+    const updated = await prisma.report.update({
+        where: { id },
+        data: {
+            status: payload.status,
+            resolvedById: moderatorId,
+            resolvedAt: new Date(),
+        },
+        include: {
+            reporter: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    photoUrl: true,
+                    role: true,
+                },
+            },
+
+            resolvedBy: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    photoUrl: true,
+                    role: true,
+                },
+            },
+
+            product: {
+                select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    status: true,
+                    upvoteCount: true,
+                    downvoteCount: true,
+                },
+            },
+        },
+    });
+
+    return updated;
 };
 
 
@@ -122,5 +196,6 @@ const deleteReport = async (id: string) => {
 export const ReportServer = {
     createReport,
     listReports,
+    updateReportStatus,
     deleteReport,
 };

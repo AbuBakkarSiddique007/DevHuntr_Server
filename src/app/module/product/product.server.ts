@@ -21,11 +21,56 @@ type ProductWithRelations = Prisma.ProductGetPayload<{ include: typeof productIn
 
 type ProductResponse = Omit<ProductWithRelations, "productTags"> & {
     tags: ProductWithRelations["productTags"][number]["tag"][];
+    openReportCount: number;
 };
 
 const toProductResponse = (product: ProductWithRelations): ProductResponse => {
     const { productTags, ...rest } = product;
-    return { ...rest, tags: productTags.map((pt) => pt.tag) };
+    return { ...rest, tags: productTags.map((pt) => pt.tag), openReportCount: 0 };
+};
+
+const getOpenReportCountMap = async (productIds: string[]) => {
+    if (!productIds.length) return new Map<string, number>();
+
+    const grouped = await prisma.report.groupBy({
+        by: ["productId"],
+        where: {
+            productId: { in: productIds },
+            status: "OPEN",
+        },
+        _count: {
+            _all: true,
+        },
+    });
+
+    const map = new Map<string, number>();
+    for (const row of grouped) {
+        map.set(row.productId, row._count._all);
+    }
+    return map;
+};
+
+const withOpenReportCounts = async (products: ProductWithRelations[]) => {
+    const ids = products.map((p) => p.id);
+    const map = await getOpenReportCountMap(ids);
+    return products.map((p) => ({
+        ...toProductResponse(p),
+        openReportCount: map.get(p.id) ?? 0,
+    }));
+};
+
+const withOpenReportCount = async (product: ProductWithRelations) => {
+    const openReportCount = await prisma.report.count({
+        where: {
+            productId: product.id,
+            status: "OPEN",
+        },
+    });
+
+    return {
+        ...toProductResponse(product),
+        openReportCount,
+    };
 };
 
 
@@ -65,7 +110,7 @@ const createProduct = async (ownerId: string, payload: CreateProductInput) => {
         include: productInclude,
     });
 
-    return toProductResponse(product);
+    return { ...toProductResponse(product), openReportCount: 0 };
 };
 
 const listAcceptedProducts = async (query: ListAcceptedProductsQuery) => {
@@ -106,9 +151,11 @@ const listAcceptedProducts = async (query: ListAcceptedProductsQuery) => {
         }),
     ]);
 
+    const productsWithCounts = await withOpenReportCounts(products);
+
     return {
         meta: { page, limit, total },
-        products: products.map(toProductResponse),
+        products: productsWithCounts,
     };
 };
 
@@ -136,10 +183,12 @@ const listFeaturedProducts = async (page = 1, limit = 10) => {
         }),
     ]);
 
+    const productsWithCounts = await withOpenReportCounts(products);
+
 
     return {
         meta: { page, limit, total },
-        products: products.map(toProductResponse),
+        products: productsWithCounts,
     };
 };
 
@@ -201,9 +250,11 @@ const listTrendingProducts = async (page = 1, limit = 10) => {
     const byId = new Map(products.map((p) => [p.id, p] as const));
     const ordered = ids.map((id) => byId.get(id)).filter(Boolean) as ProductWithRelations[];
 
+    const productsWithCounts = await withOpenReportCounts(ordered);
+
     return {
         meta: { page, limit, total },
-        products: ordered.map(toProductResponse),
+        products: productsWithCounts,
     };
 };
 
@@ -225,9 +276,11 @@ const listMyProducts = async (ownerId: string, page = 1, limit = 10) => {
         }),
     ]);
 
+    const productsWithCounts = await withOpenReportCounts(products);
+
     return {
         meta: { page, limit, total },
-        products: products.map(toProductResponse),
+        products: productsWithCounts,
     };
 };
 
@@ -250,9 +303,11 @@ const listPendingProducts = async (page = 1, limit = 10) => {
         }),
     ]);
 
+    const productsWithCounts = await withOpenReportCounts(products);
+
     return {
         meta: { page, limit, total },
-        products: products.map(toProductResponse),
+        products: productsWithCounts,
     };
 };
 
@@ -267,7 +322,7 @@ const getProductById = async (id: string) => {
         throw new AppError(StatusCodes.NOT_FOUND, "Product not found");
     }
 
-    return toProductResponse(product);
+    return withOpenReportCount(product);
 };
 
 const assertOwner = async (productId: string, userId: string) => {
@@ -328,7 +383,7 @@ const updateProduct = async (productId: string, userId: string, payload: UpdateP
         });
     });
 
-    return toProductResponse(updated);
+    return withOpenReportCount(updated);
 };
 
 const updateProductStatus = async (
@@ -372,7 +427,7 @@ const updateProductStatus = async (
         include: productInclude,
     });
 
-    return toProductResponse(updated);
+    return withOpenReportCount(updated);
 };
 
 const toggleProductFeatured = async (productId: string) => {
@@ -408,7 +463,7 @@ const toggleProductFeatured = async (productId: string) => {
         });
     });
 
-    return toProductResponse(updated);
+    return withOpenReportCount(updated);
 };
 
 const deleteProduct = async (productId: string, requester: { userId: string; role: Role }) => {

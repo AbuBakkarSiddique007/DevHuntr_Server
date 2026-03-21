@@ -1,10 +1,20 @@
+enum ReportStatus {
+    OPEN
+    RESOLVED
+    DISMISSED
+}
+
 model Report {
-    id         String   @id @default(uuid())
-    productId  String
-    product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-    reporterId String
-    reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-    reason     String
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+    id           String       @id @default(uuid())
+    productId    String
+    product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+    reporterId   String
+    reporter     User         @relation("UserReports", fields: [reporterId], references: [id], onDelete: Cascade)
+    status       ReportStatus @default(OPEN)
+    resolvedById String?
+    resolvedBy   User?        @relation("ResolvedReports", fields: [resolvedById], references: [id], onDelete: SetNull)
+    resolvedAt   DateTime?
+    reason       String
+    createdAt    DateTime     @default(now())
+    updatedAt    DateTime     @updatedAt
 }
