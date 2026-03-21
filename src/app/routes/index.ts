@@ -7,6 +7,7 @@ import { CommentRoute } from "../module/comment/comment.route";
 import { VoteRoute } from "../module/vote/vote.route";
 import { ReportRoute } from "../module/report/report.route";
 import { StatisticsRoute } from "../module/statistics/statistics.route";
+import { CouponRoute } from "../module/coupon/coupon.route";
 
 const router = Router();
 
@@ -25,6 +26,8 @@ router.use("/votes", VoteRoute);
 router.use("/reports", ReportRoute);
 
 router.use("/statistics", StatisticsRoute);
+
+router.use("/coupons", CouponRoute);
 
 
 
