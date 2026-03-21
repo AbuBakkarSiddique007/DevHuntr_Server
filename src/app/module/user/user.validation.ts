@@ -12,3 +12,7 @@ export const userIdParamsSchema = z.object({
 export const updateUserRoleSchema = z.object({
   role: z.enum(["USER", "MODERATOR", "ADMIN"]),
 });
+
+export const updateMySubscriptionSchema = z.object({
+  isSubscribed: z.boolean(),
+});

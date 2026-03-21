@@ -5,6 +5,7 @@ import verifyToken from "../../middlewares/verifyToken";
 import { UserController } from "./user.controller";
 import {
 	listUsersQuerySchema,
+	updateMySubscriptionSchema,
 	updateUserRoleSchema,
 	userIdParamsSchema,
 } from "./user.validation";
@@ -12,6 +13,15 @@ import {
 const router = Router();
 
 router.get("/me", verifyToken, UserController.getMe);
+
+// 
+router.patch(
+	"/me/subscription",
+	verifyToken,
+	validateRequest(updateMySubscriptionSchema),
+	UserController.updateMySubscription,
+);
+
 
 router.get(
 	"/",
