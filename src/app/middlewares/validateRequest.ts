@@ -1,7 +1,7 @@
 import { type RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 import { type ZodTypeAny } from "zod";
-import AppError from "../errorHelpers/AppError";
+import AppError from "../errorHelpers/AppError.js";
 
 type RequestValidationSchema = {
     body?: ZodTypeAny;

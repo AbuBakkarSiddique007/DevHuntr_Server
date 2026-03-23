@@ -1,6 +1,6 @@
 import { type RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
-import AppError from "../errorHelpers/AppError";
+import AppError from "../errorHelpers/AppError.js";
 
 const verifyModerator: RequestHandler = (req, _res, next) => {
   if (!req.user) {

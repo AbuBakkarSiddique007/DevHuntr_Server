@@ -1,16 +1,21 @@
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { IndexRoutes } from "./app/routes";
-import { notFound } from "./app/middlewares/notFound";
-import globalErrorHandler from "./app/middlewares/globalErrorHandler";
-import { envVars } from "./app/config/env";
-import AppError from "./app/errorHelpers/AppError";
+import { IndexRoutes } from "./app/routes/index.js";
+import { notFound } from "./app/middlewares/notFound.js";
+import globalErrorHandler from "./app/middlewares/globalErrorHandler.js";
+import { getEnvVars } from "./app/config/env.js";
+import AppError from "./app/errorHelpers/AppError.js";
 import { StatusCodes } from "http-status-codes";
 
 const app: Application = express();
 
-const allowedOrigins = [envVars.CLIENT_URL, "http://localhost:3000"].filter(Boolean) as string[];
+const { CLIENT_URL } = getEnvVars();
+const allowedOrigins = [
+    CLIENT_URL,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+].filter(Boolean) as string[];
 
 app.use(
     cors({

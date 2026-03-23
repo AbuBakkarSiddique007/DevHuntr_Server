@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import AppError from "../../errorHelpers/AppError";
-import { VoteServer } from "./vote.server";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import AppError from "../../errorHelpers/AppError.js";
+import { VoteServer } from "./vote.server.js";
 
 const castVote = catchAsync(async (req, res) => {
   const userId = req.user!.userId;

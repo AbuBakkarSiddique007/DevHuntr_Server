@@ -1,8 +1,8 @@
 import { Router } from "express";
-import verifyToken from "../../middlewares/verifyToken";
-import validateRequest from "../../middlewares/validateRequest";
-import { VoteController } from "./vote.controller";
-import { castVoteBodySchema, productIdParamsSchema } from "./vote.validation";
+import verifyToken from "../../middlewares/verifyToken.js";
+import validateRequest from "../../middlewares/validateRequest.js";
+import { VoteController } from "./vote.controller.js";
+import { castVoteBodySchema, productIdParamsSchema } from "./vote.validation.js";
 
 const router = Router();
 

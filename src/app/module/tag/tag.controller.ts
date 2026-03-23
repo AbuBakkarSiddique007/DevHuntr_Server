@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import { TagServer } from "./tag.server";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import { TagServer } from "./tag.server.js";
 
 const listTags = catchAsync(async (_req, res) => {
     const result = await TagServer.listTags();

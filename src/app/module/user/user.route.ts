@@ -1,14 +1,14 @@
 import { Router } from "express";
-import validateRequest from "../../middlewares/validateRequest";
-import verifyAdmin from "../../middlewares/verifyAdmin";
-import verifyToken from "../../middlewares/verifyToken";
-import { UserController } from "./user.controller";
+import validateRequest from "../../middlewares/validateRequest.js";
+import verifyAdmin from "../../middlewares/verifyAdmin.js";
+import verifyToken from "../../middlewares/verifyToken.js";
+import { UserController } from "./user.controller.js";
 import {
 	listUsersQuerySchema,
 	updateMySubscriptionSchema,
 	updateUserRoleSchema,
 	userIdParamsSchema,
-} from "./user.validation";
+} from "./user.validation.js";
 
 const router = Router();
 

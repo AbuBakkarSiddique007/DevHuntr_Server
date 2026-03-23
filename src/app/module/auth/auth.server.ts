@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../lib/prisma";
-import { envVars } from "../../config/env";
-import AppError from "../../errorHelpers/AppError";
+import { prisma } from "../../lib/prisma.js";
+import { getEnvVars, requireEnv } from "../../config/env.js";
+import AppError from "../../errorHelpers/AppError.js";
 import {
     type AuthResponse,
     type AuthTokenPayload,
@@ -13,8 +13,9 @@ import {
 
 
 const createToken = (payload: AuthTokenPayload): string => {
-    const secret = envVars.JWT_SECRET;
-    const expiresIn = (envVars.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"];
+    const secret = requireEnv("JWT_SECRET");
+    const { JWT_EXPIRES_IN } = getEnvVars();
+    const expiresIn = (JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"];
 
     return jwt.sign(payload, secret, { expiresIn });
 };

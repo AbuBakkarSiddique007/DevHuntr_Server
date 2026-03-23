@@ -1,14 +1,14 @@
 import { type ErrorRequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
-import { Prisma } from "../../generated/prisma/client";
-import { envVars } from "../config/env";
-import AppError from "../errorHelpers/AppError";
+import { Prisma } from "@prisma/client";
+import { getEnvVars } from "../config/env.js";
+import AppError from "../errorHelpers/AppError.js";
 
 const globalErrorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     void _next;
 
-    const isProd = envVars.NODE_ENV === "production";
+    const isProd = getEnvVars().NODE_ENV === "production";
 
     if (err instanceof ZodError) {
         return res.status(StatusCodes.BAD_REQUEST).json({

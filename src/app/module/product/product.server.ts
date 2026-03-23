@@ -1,9 +1,7 @@
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../lib/prisma";
-import AppError from "../../errorHelpers/AppError";
-import { Role } from "../../../generated/prisma/enums";
-import { ProductStatus } from "../../../generated/prisma/enums";
-import { Prisma } from "../../../generated/prisma/client";
+import { Prisma, ProductStatus, Role } from "@prisma/client";
+import { prisma } from "../../lib/prisma.js";
+import AppError from "../../errorHelpers/AppError.js";
 
 import type {
     CreateProductInput,

@@ -1,15 +1,15 @@
 import { Router } from "express";
-import verifyToken from "../../middlewares/verifyToken";
-import verifyModerator from "../../middlewares/verifyModerator";
-import verifyAdmin from "../../middlewares/verifyAdmin";
-import validateRequest from "../../middlewares/validateRequest";
-import { ReportController } from "./report.controller";
+import verifyToken from "../../middlewares/verifyToken.js";
+import verifyModerator from "../../middlewares/verifyModerator.js";
+import verifyAdmin from "../../middlewares/verifyAdmin.js";
+import validateRequest from "../../middlewares/validateRequest.js";
+import { ReportController } from "./report.controller.js";
 import {
     createReportSchema,
     listReportsQuerySchema,
     reportIdParamsSchema,
     updateReportStatusSchema,
-} from "./report.validation";
+} from "./report.validation.js";
 
 const router = Router();
 

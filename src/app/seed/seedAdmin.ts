@@ -1,12 +1,11 @@
 import bcrypt from "bcryptjs";
-import { Role } from "../../generated/prisma/enums";
-import { envVars } from "../config/env";
-import { prisma } from "../lib/prisma";
+import { Role } from "@prisma/client";
+import { getEnvVars } from "../config/env.js";
+import { prisma } from "../lib/prisma.js";
 
 export const seedAdmin = async () => {
     try {
-        const email = envVars.ADMIN_EMAIL;
-        const password = envVars.ADMIN_PASSWORD;
+        const { ADMIN_EMAIL: email, ADMIN_PASSWORD: password } = getEnvVars();
 
         if (!email || !password) {
             console.error(

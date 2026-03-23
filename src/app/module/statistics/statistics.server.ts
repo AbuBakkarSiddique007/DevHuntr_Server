@@ -1,5 +1,5 @@
-import { prisma } from "../../lib/prisma";
-import { ProductStatus } from "../../../generated/prisma/enums";
+import { ProductStatus } from "@prisma/client";
+import { prisma } from "../../lib/prisma.js";
 
 const getStatistics = async () => {
     const [

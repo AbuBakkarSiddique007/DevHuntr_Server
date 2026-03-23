@@ -1,9 +1,9 @@
 import { type RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
-import { envVars } from "../config/env";
-import AppError from "../errorHelpers/AppError";
-import { type Role } from "../../generated/prisma/enums";
+import { requireEnv } from "../config/env.js";
+import AppError from "../errorHelpers/AppError.js";
+import { type Role } from "@prisma/client";
 
 type JwtPayload = {
   userId: string;
@@ -22,7 +22,7 @@ const verifyToken: RequestHandler = (req, _res, next) => {
 
 
   try {
-    const decoded = jwt.verify(token, envVars.JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, requireEnv("JWT_SECRET")) as JwtPayload;
 
     if (!decoded?.userId || !decoded?.role) {
 

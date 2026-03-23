@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import { ProductServer } from "./product.server";
-import AppError from "../../errorHelpers/AppError";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import { ProductServer } from "./product.server.js";
+import AppError from "../../errorHelpers/AppError.js";
 import type {
     ListAcceptedProductsQuery,
     ListFeedProductsQuery,

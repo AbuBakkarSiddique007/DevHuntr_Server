@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import { CouponServer } from "./coupon.server";
-import AppError from "../../errorHelpers/AppError";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import { CouponServer } from "./coupon.server.js";
+import AppError from "../../errorHelpers/AppError.js";
 
 
 const createCoupon = catchAsync(

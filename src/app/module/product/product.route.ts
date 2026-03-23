@@ -1,8 +1,8 @@
 import { Router } from "express";
-import validateRequest from "../../middlewares/validateRequest";
-import verifyToken from "../../middlewares/verifyToken";
-import verifyModerator from "../../middlewares/verifyModerator";
-import { ProductController } from "./product.controller";
+import validateRequest from "../../middlewares/validateRequest.js";
+import verifyToken from "../../middlewares/verifyToken.js";
+import verifyModerator from "../../middlewares/verifyModerator.js";
+import { ProductController } from "./product.controller.js";
 import {
     createProductSchema,
     listAcceptedProductsQuerySchema,
@@ -12,7 +12,7 @@ import {
     productIdParamsSchema,
     updateProductSchema,
     updateProductStatusSchema,
-} from "./product.validation";
+} from "./product.validation.js";
 
 const router = Router();
 

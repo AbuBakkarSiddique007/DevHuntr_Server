@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../lib/prisma";
-import AppError from "../../errorHelpers/AppError";
-import { Prisma } from "../../../generated/prisma/client";
+import { Prisma } from "@prisma/client";
+import { prisma } from "../../lib/prisma.js";
+import AppError from "../../errorHelpers/AppError.js";
 
 import type { CreateReportInput, ListReportsQuery, UpdateReportStatusInput } from "./report.interface";
 

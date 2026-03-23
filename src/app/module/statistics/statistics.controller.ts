@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import { StatisticsServer } from "./statistics.server";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import { StatisticsServer } from "./statistics.server.js";
 
 const getStatistics = catchAsync(
     async (_req, res) => {

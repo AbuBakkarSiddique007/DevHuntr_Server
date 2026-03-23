@@ -1,9 +1,9 @@
 import { Router } from "express";
-import verifyToken from "../../middlewares/verifyToken";
-import verifyAdmin from "../../middlewares/verifyAdmin";
-import validateRequest from "../../middlewares/validateRequest";
-import { TagController } from "./tag.controller";
-import { createTagSchema } from "./tag.validation";
+import verifyToken from "../../middlewares/verifyToken.js";
+import verifyAdmin from "../../middlewares/verifyAdmin.js";
+import validateRequest from "../../middlewares/validateRequest.js";
+import { TagController } from "./tag.controller.js";
+import { createTagSchema } from "./tag.validation.js";
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../lib/prisma";
-import AppError from "../../errorHelpers/AppError";
+import { prisma } from "../../lib/prisma.js";
+import AppError from "../../errorHelpers/AppError.js";
 
 const listUsers = async (page = 1, limit = 10) => {
   const skip = (page - 1) * limit;

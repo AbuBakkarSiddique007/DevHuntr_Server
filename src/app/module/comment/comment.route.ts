@@ -1,12 +1,12 @@
 import { Router } from "express";
-import verifyToken from "../../middlewares/verifyToken";
-import validateRequest from "../../middlewares/validateRequest";
-import { CommentController } from "./comment.controller";
+import verifyToken from "../../middlewares/verifyToken.js";
+import validateRequest from "../../middlewares/validateRequest.js";
+import { CommentController } from "./comment.controller.js";
 import {
     createCommentSchema,
     listCommentsQuerySchema,
     productIdParamsSchema,
-} from "./comment.validation";
+} from "./comment.validation.js";
 
 const router = Router();
 

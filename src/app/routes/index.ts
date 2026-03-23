@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { AuthRoute } from "../module/auth/auth.route";
-import { UserRoute } from "../module/user/user.route";
-import { ProductRoute } from "../module/product/product.route";
-import { TagRoute } from "../module/tag/tag.route";
-import { CommentRoute } from "../module/comment/comment.route";
-import { VoteRoute } from "../module/vote/vote.route";
-import { ReportRoute } from "../module/report/report.route";
-import { StatisticsRoute } from "../module/statistics/statistics.route";
-import { CouponRoute } from "../module/coupon/coupon.route";
+import { AuthRoute } from "../module/auth/auth.route.js";
+import { UserRoute } from "../module/user/user.route.js";
+import { ProductRoute } from "../module/product/product.route.js";
+import { TagRoute } from "../module/tag/tag.route.js";
+import { CommentRoute } from "../module/comment/comment.route.js";
+import { VoteRoute } from "../module/vote/vote.route.js";
+import { ReportRoute } from "../module/report/report.route.js";
+import { StatisticsRoute } from "../module/statistics/statistics.route.js";
+import { CouponRoute } from "../module/coupon/coupon.route.js";
 
 const router = Router();
 

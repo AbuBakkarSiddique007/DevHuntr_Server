@@ -1,16 +1,17 @@
 import { StatusCodes } from "http-status-codes";
 import { type CookieOptions, type Response } from "express";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import { AuthServer } from "./auth.server";
-import { envVars } from "../../config/env";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import { AuthServer } from "./auth.server.js";
+import { getEnvVars } from "../../config/env.js";
 
 const ACCESS_TOKEN_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const getCookieSecurity = () => {
-    const frontend = envVars.CLIENT_URL || "";
+    const { CLIENT_URL, NODE_ENV } = getEnvVars();
+    const frontend = CLIENT_URL || "";
 
-    const secure = envVars.NODE_ENV === "production" || frontend.startsWith("https://");
+    const secure = NODE_ENV === "production" || frontend.startsWith("https://");
 
     const sameSite: CookieOptions["sameSite"] = secure ? "none" : "lax";
 
@@ -52,7 +53,7 @@ const register = catchAsync(async (req, res) => {
 
     setAuthCookie(res, result.token);
 
-    const data = envVars.NODE_ENV === "production" ? { user: result.user } : result;
+    const data = getEnvVars().NODE_ENV === "production" ? { user: result.user } : result;
 
     sendResponse(res, {
         httpStatusCode: StatusCodes.CREATED,
@@ -67,7 +68,7 @@ const login = catchAsync(async (req, res) => {
 
     setAuthCookie(res, result.token);
 
-    const data = envVars.NODE_ENV === "production" ? { user: result.user } : result;
+    const data = getEnvVars().NODE_ENV === "production" ? { user: result.user } : result;
 
     sendResponse(res, {
         httpStatusCode: StatusCodes.OK,

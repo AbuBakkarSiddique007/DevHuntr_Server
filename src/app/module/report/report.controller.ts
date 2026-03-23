@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
-import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
-import AppError from "../../errorHelpers/AppError";
-import { ReportServer } from "./report.server";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import AppError from "../../errorHelpers/AppError.js";
+import { ReportServer } from "./report.server.js";
 import type { ListReportsQuery, UpdateReportStatusInput } from "./report.interface";
 
 const createReport = catchAsync(

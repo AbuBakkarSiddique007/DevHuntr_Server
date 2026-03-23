@@ -1,14 +1,14 @@
 import { Router } from "express";
-import verifyToken from "../../middlewares/verifyToken";
-import verifyAdmin from "../../middlewares/verifyAdmin";
-import validateRequest from "../../middlewares/validateRequest";
-import { CouponController } from "./coupon.controller";
+import verifyToken from "../../middlewares/verifyToken.js";
+import verifyAdmin from "../../middlewares/verifyAdmin.js";
+import validateRequest from "../../middlewares/validateRequest.js";
+import { CouponController } from "./coupon.controller.js";
 import {
 	couponIdParamsSchema,
 	createCouponSchema,
 	updateCouponSchema,
 	validateCodeParamsSchema,
-} from "./coupon.validation";
+} from "./coupon.validation.js";
 
 const router = Router();
 
