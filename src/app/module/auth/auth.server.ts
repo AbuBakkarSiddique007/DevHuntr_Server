@@ -23,10 +23,16 @@ const createToken = (payload: AuthTokenPayload): string => {
 
 const register = async (payload: RegisterInput): Promise<AuthResponse> => {
 
-    const existing = await prisma.user.findUnique({ 
-        where: { 
-            email: payload.email 
-        } 
+    const email = payload.email.trim();
+    const normalizedEmail = email.toLowerCase();
+
+    const existing = await prisma.user.findFirst({
+        where: {
+            email: {
+                equals: email,
+                mode: "insensitive",
+            },
+        },
     });
 
     if (existing) {
@@ -38,7 +44,7 @@ const register = async (payload: RegisterInput): Promise<AuthResponse> => {
     const user = await prisma.user.create({
         data: {
             name: payload.name,
-            email: payload.email,
+            email: normalizedEmail,
             password: hashedPassword,
             photoUrl: payload.photoUrl,
         },
@@ -61,10 +67,15 @@ const register = async (payload: RegisterInput): Promise<AuthResponse> => {
 
 const login = async (payload: LoginInput): Promise<AuthResponse> => {
 
-    const user = await prisma.user.findUnique({ 
-        where: { 
-            email: payload.email 
-        } 
+    const email = payload.email.trim();
+
+    const user = await prisma.user.findFirst({
+        where: {
+            email: {
+                equals: email,
+                mode: "insensitive",
+            },
+        },
     });
 
     if (!user) {
