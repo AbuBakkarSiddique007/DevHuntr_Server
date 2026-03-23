@@ -1,11 +1,14 @@
 import app from "./app.js";
 import { getEnvVars } from "./app/config/env.js";
+import { seedAdminIfEnabled } from "./app/seed/seedAdminOnStart.js";
 
 
 
 // Start the server:
 const bootstrap = async () => {
     try {
+        await seedAdminIfEnabled();
+
         const { PORT } = getEnvVars();
         const port = PORT ? Number(PORT) : 5000;
 
