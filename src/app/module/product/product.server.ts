@@ -112,8 +112,8 @@ const createProduct = async (ownerId: string, payload: CreateProductInput) => {
 };
 
 const listAcceptedProducts = async (query: ListAcceptedProductsQuery) => {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 10);
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = { status: ProductStatus.ACCEPTED };
@@ -158,7 +158,7 @@ const listAcceptedProducts = async (query: ListAcceptedProductsQuery) => {
 };
 
 const listFeaturedProducts = async (page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
+    const skip = (Number(page) - 1) * Number(limit);
 
     const where: Prisma.ProductWhereInput = {
         status: ProductStatus.ACCEPTED,
@@ -172,7 +172,7 @@ const listFeaturedProducts = async (page = 1, limit = 10) => {
         prisma.product.findMany({
             where,
             skip,
-            take: limit,
+            take: Number(limit),
             orderBy: {
                 createdAt: "desc"
             },
@@ -191,7 +191,7 @@ const listFeaturedProducts = async (page = 1, limit = 10) => {
 };
 
 const listTrendingProducts = async (page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
+    const skip = (Number(page) - 1) * Number(limit);
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     const [total, ranked] = await Promise.all([
@@ -257,7 +257,7 @@ const listTrendingProducts = async (page = 1, limit = 10) => {
 };
 
 const listMyProducts = async (ownerId: string, page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
+    const skip = (Number(page) - 1) * Number(limit);
 
     const where = { ownerId };
 
@@ -266,7 +266,7 @@ const listMyProducts = async (ownerId: string, page = 1, limit = 10) => {
         prisma.product.findMany({
             where,
             skip,
-            take: limit,
+            take: Number(limit),
             orderBy: {
                 createdAt: "desc"
             },
@@ -283,7 +283,7 @@ const listMyProducts = async (ownerId: string, page = 1, limit = 10) => {
 };
 
 const listPendingProducts = async (page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
+    const skip = (Number(page) - 1) * Number(limit);
 
     const where: Prisma.ProductWhereInput = { status: ProductStatus.PENDING };
 
@@ -293,7 +293,7 @@ const listPendingProducts = async (page = 1, limit = 10) => {
         prisma.product.findMany({
             where,
             skip,
-            take: limit,
+            take: Number(limit),
             orderBy: {
                 createdAt: "asc",
             },
