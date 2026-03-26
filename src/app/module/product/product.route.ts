@@ -7,6 +7,7 @@ import {
     createProductSchema,
     listAcceptedProductsQuerySchema,
     listFeedProductsQuerySchema,
+    listModeratedProductsQuerySchema,
     listPendingProductsQuerySchema,
     listMyProductsQuerySchema,
     productIdParamsSchema,
@@ -47,6 +48,14 @@ router.get(
     verifyModerator,
     validateRequest({ query: listPendingProductsQuerySchema }),
     ProductController.listPendingProducts,
+);
+
+router.get(
+    "/moderation",
+    verifyToken,
+    verifyModerator,
+    validateRequest({ query: listModeratedProductsQuerySchema }),
+    ProductController.listModeratedProducts,
 );
 
 router.patch(

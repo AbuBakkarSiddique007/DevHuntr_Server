@@ -42,6 +42,12 @@ export const listPendingProductsQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).optional(),
 });
 
+export const listModeratedProductsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  status: z.enum(["ACCEPTED", "REJECTED"]).optional(),
+});
+
 export const updateProductStatusSchema = z
   .object({
     status: z.enum(["ACCEPTED", "REJECTED"]),

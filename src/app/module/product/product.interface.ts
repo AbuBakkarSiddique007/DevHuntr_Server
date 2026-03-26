@@ -20,6 +20,12 @@ export interface ListPendingProductsQuery {
   limit?: number;
 }
 
+export interface ListModeratedProductsQuery {
+  page?: number;
+  limit?: number;
+  status?: "ACCEPTED" | "REJECTED";
+}
+
 export interface CreateProductInput {
   name: string;
   image: string;

@@ -6,6 +6,7 @@ import AppError from "../../errorHelpers/AppError.js";
 import type {
     CreateProductInput,
     ListAcceptedProductsQuery,
+    ListModeratedProductsQuery,
     UpdateProductInput,
     UpdateProductStatusInput,
 } from "./product.interface";
@@ -309,6 +310,38 @@ const listPendingProducts = async (page = 1, limit = 10) => {
     };
 };
 
+const listModeratedProducts = async (
+    query: ListModeratedProductsQuery,
+) => {
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 10);
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = {
+        status: query.status === "REJECTED" ? ProductStatus.REJECTED : ProductStatus.ACCEPTED,
+    };
+
+    const [total, products] = await Promise.all([
+        prisma.product.count({ where }),
+        prisma.product.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: {
+                moderatedAt: "desc",
+            },
+            include: productInclude,
+        }),
+    ]);
+
+    const productsWithCounts = await withOpenReportCounts(products);
+
+    return {
+        meta: { page, limit, total },
+        products: productsWithCounts,
+    };
+};
+
 const getProductById = async (id: string) => {
     const product = await prisma.product.findUnique({
         where: { id },
@@ -503,6 +536,7 @@ export const ProductServer = {
     listTrendingProducts,
     listMyProducts,
     listPendingProducts,
+    listModeratedProducts,
     getProductById,
     updateProduct,
     updateProductStatus,

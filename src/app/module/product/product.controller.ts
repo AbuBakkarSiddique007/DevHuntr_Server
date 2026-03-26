@@ -6,6 +6,7 @@ import AppError from "../../errorHelpers/AppError.js";
 import type {
     ListAcceptedProductsQuery,
     ListFeedProductsQuery,
+    ListModeratedProductsQuery,
     ListMyProductsQuery,
     ListPendingProductsQuery,
     UpdateProductStatusInput,
@@ -98,6 +99,18 @@ const listPendingProducts = catchAsync(async (req, res) => {
         httpStatusCode: StatusCodes.OK,
         success: true,
         message: "Pending products fetched successfully",
+        data: result,
+    });
+});
+
+const listModeratedProducts = catchAsync(async (req, res) => {
+    const query = req.query as ListModeratedProductsQuery;
+    const result = await ProductServer.listModeratedProducts(query);
+
+    sendResponse(res, {
+        httpStatusCode: StatusCodes.OK,
+        success: true,
+        message: "Moderated products fetched successfully",
         data: result,
     });
 });
@@ -212,6 +225,7 @@ export const ProductController = {
     listTrendingProducts,
     listMyProducts,
     listPendingProducts,
+    listModeratedProducts,
     getProductById,
     updateProduct,
     updateProductStatus,
