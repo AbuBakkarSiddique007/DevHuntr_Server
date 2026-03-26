@@ -19,6 +19,7 @@ export type AuthTokenPayload = {
 
 export type AuthResponse = {
 	token: string;
+	refreshToken: string;
 	user: {
 		id: string;
 		name: string;

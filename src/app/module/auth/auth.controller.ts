@@ -5,7 +5,8 @@ import sendResponse from "../../shared/sendResponse.js";
 import { AuthServer } from "./auth.server.js";
 import { getEnvVars } from "../../config/env.js";
 
-const ACCESS_TOKEN_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const ACCESS_TOKEN_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
+const REFRESH_TOKEN_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 const getCookieSecurity = () => {
     const { CLIENT_URL, NODE_ENV } = getEnvVars();
@@ -21,7 +22,8 @@ const getCookieSecurity = () => {
     };
 };
 
-const getAuthCookieOptions = (): CookieOptions => {
+
+const getAccessCookieOptions = (): CookieOptions => {
     const { secure, sameSite } = getCookieSecurity();
 
     return {
@@ -33,11 +35,26 @@ const getAuthCookieOptions = (): CookieOptions => {
     };
 };
 
-const setAuthCookie = (res: Response, token: string) => {
-    res.cookie("accessToken", token, getAuthCookieOptions());
+
+const getRefreshCookieOptions = (): CookieOptions => {
+    const { secure, sameSite } = getCookieSecurity();
+
+    return {
+        httpOnly: true,
+        secure,
+        sameSite,
+        path: "/",
+        maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE_MS,
+    };
 };
 
-const clearAuthCookie = (res: Response) => {
+const setAuthCookies = (res: Response, tokens: { accessToken: string; refreshToken: string }) => {
+    res.cookie("accessToken", tokens.accessToken, getAccessCookieOptions());
+    res.cookie("refreshToken", tokens.refreshToken, getRefreshCookieOptions());
+};
+
+
+const clearAuthCookies = (res: Response) => {
     const { secure, sameSite } = getCookieSecurity();
 
     res.clearCookie("accessToken", {
@@ -46,12 +63,20 @@ const clearAuthCookie = (res: Response) => {
         sameSite,
         path: "/"
     });
+
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure,
+        sameSite,
+        path: "/"
+    });
 };
+
 
 const register = catchAsync(async (req, res) => {
     const result = await AuthServer.register(req.body);
 
-    setAuthCookie(res, result.token);
+    setAuthCookies(res, { accessToken: result.token, refreshToken: result.refreshToken });
 
     const data = getEnvVars().NODE_ENV === "production" ? { user: result.user } : result;
 
@@ -66,7 +91,7 @@ const register = catchAsync(async (req, res) => {
 const login = catchAsync(async (req, res) => {
     const result = await AuthServer.login(req.body);
 
-    setAuthCookie(res, result.token);
+    setAuthCookies(res, { accessToken: result.token, refreshToken: result.refreshToken });
 
     const data = getEnvVars().NODE_ENV === "production" ? { user: result.user } : result;
 
@@ -79,7 +104,7 @@ const login = catchAsync(async (req, res) => {
 });
 
 const logout = catchAsync(async (_req, res) => {
-    clearAuthCookie(res);
+    clearAuthCookies(res);
 
     sendResponse(res, {
         httpStatusCode: StatusCodes.OK,
@@ -89,8 +114,23 @@ const logout = catchAsync(async (_req, res) => {
     });
 });
 
+const refresh = catchAsync(async (req, res) => {
+    const token = req.cookies?.refreshToken as string | undefined;
+    const result = await AuthServer.refresh(token || "");
+
+    setAuthCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
+
+    sendResponse(res, {
+        httpStatusCode: StatusCodes.OK,
+        success: true,
+        message: "Access token refreshed successfully",
+        data: null,
+    });
+});
+
 export const AuthController = {
     register,
     login,
     logout,
+    refresh,
 };

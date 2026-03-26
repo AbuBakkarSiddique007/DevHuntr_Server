@@ -12,12 +12,25 @@ import {
 } from "./auth.interface";
 
 
-const createToken = (payload: AuthTokenPayload): string => {
+const createAccessToken = (payload: AuthTokenPayload): string => {
     const secret = requireEnv("JWT_SECRET");
     const { JWT_EXPIRES_IN } = getEnvVars();
-    const expiresIn = (JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"];
+    const expiresIn = (JWT_EXPIRES_IN || "15m") as SignOptions["expiresIn"];
 
     return jwt.sign(payload, secret, { expiresIn });
+};
+
+const createRefreshToken = (payload: AuthTokenPayload): string => {
+
+    const secret = requireEnv("JWT_SECRET");
+    const expiresIn = "30d" as SignOptions["expiresIn"];
+
+    return jwt.sign(payload, secret, { expiresIn });
+};
+
+type RefreshResponse = {
+    accessToken: string;
+    refreshToken: string;
 };
 
 
@@ -50,7 +63,8 @@ const register = async (payload: RegisterInput): Promise<AuthResponse> => {
         },
     });
 
-    const token = createToken({ userId: user.id, role: user.role });
+    const accessToken = createAccessToken({ userId: user.id, role: user.role });
+    const refreshToken = createRefreshToken({ userId: user.id, role: user.role });
 
     const { password: _password, ...userWithoutPassword } = user;
 
@@ -58,9 +72,10 @@ const register = async (payload: RegisterInput): Promise<AuthResponse> => {
 
 
     return {
-        token,
-        user: userWithoutPassword
-    };
+        token: accessToken,
+        user: userWithoutPassword,
+        refreshToken,
+    } as AuthResponse & { refreshToken: string };
 };
 
 
@@ -88,20 +103,50 @@ const login = async (payload: LoginInput): Promise<AuthResponse> => {
         throw new AppError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
     }
 
-    const token = createToken({ userId: user.id, role: user.role });
+    const accessToken = createAccessToken({ userId: user.id, role: user.role });
+    const refreshToken = createRefreshToken({ userId: user.id, role: user.role });
 
     const { password: _password, ...userWithoutPassword } = user;
 
     void _password;
 
     return {
-        token,
-        user: userWithoutPassword
-    };
+        token: accessToken,
+        user: userWithoutPassword,
+        refreshToken,
+    } as AuthResponse & { refreshToken: string };
+};
+
+const refresh = async (refreshToken: string): Promise<RefreshResponse> => {
+    if (!refreshToken) {
+        throw new AppError(StatusCodes.UNAUTHORIZED, "Refresh token is missing");
+    }
+
+    try {
+        const decoded = jwt.verify(refreshToken, requireEnv("JWT_SECRET")) as AuthTokenPayload & {
+            iat?: number;
+            exp?: number;
+        };
+
+        if (!decoded?.userId || !decoded?.role) {
+            throw new AppError(StatusCodes.UNAUTHORIZED, "Invalid refresh token");
+        }
+
+        const accessToken = createAccessToken({ userId: decoded.userId, role: decoded.role });
+        const nextRefreshToken = createRefreshToken({ userId: decoded.userId, role: decoded.role });
+
+        return {
+            accessToken,
+            refreshToken: nextRefreshToken,
+        };
+    } catch {
+        throw new AppError(StatusCodes.UNAUTHORIZED, "Invalid or expired refresh token");
+    }
 };
 
 export const AuthServer = {
     register,
     login,
+    refresh,
 };
 
