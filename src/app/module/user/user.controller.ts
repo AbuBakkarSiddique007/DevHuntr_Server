@@ -6,10 +6,14 @@ import AppError from "../../errorHelpers/AppError.js";
 
 const listUsers = catchAsync(async (req, res) => {
 
-  const { page = 1, limit = 10 } = req.query as unknown as {
-    page?: number;
-    limit?: number;
-  };
+  const pageRaw = (req.query as Record<string, unknown>).page;
+  const limitRaw = (req.query as Record<string, unknown>).limit;
+
+  const pageParsed = typeof pageRaw === "string" ? parseInt(pageRaw, 10) : Number(pageRaw);
+  const limitParsed = typeof limitRaw === "string" ? parseInt(limitRaw, 10) : Number(limitRaw);
+
+  const page = Number.isFinite(pageParsed) && pageParsed > 0 ? pageParsed : 1;
+  const limit = Number.isFinite(limitParsed) && limitParsed > 0 && limitParsed <= 100 ? limitParsed : 10;
 
   const result = await UserServer.listUsers(page, limit);
 
