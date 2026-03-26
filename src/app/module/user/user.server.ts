@@ -72,9 +72,27 @@ const updateMySubscription = async (userId: string, isSubscribed: boolean) => {
   return userWithoutPassword;
 };
 
+
+const updateProfile = async (userId: string, payload: Partial<{ name: string; photoUrl: string }>) => {
+
+  const user = await prisma.user.update({
+    where: {
+      id: userId
+    },
+
+    data: payload,
+  });
+
+  const { password: _password, ...userWithoutPassword } = user;
+
+  void _password;
+  return userWithoutPassword;
+};
+
 export const UserServer = {
   listUsers,
   getMe,
   updateMySubscription,
   updateUserRole,
+  updateProfile,
 };

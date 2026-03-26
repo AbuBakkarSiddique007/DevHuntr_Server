@@ -49,7 +49,7 @@ const seedTags = async () => {
     }
   } catch (error) {
     console.error("Error seeding tags:", error);
-    
+
     process.exitCode = 1;
 
   } finally {

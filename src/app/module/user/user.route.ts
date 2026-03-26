@@ -14,12 +14,17 @@ const router = Router();
 
 router.get("/me", verifyToken, UserController.getMe);
 
-// 
 router.patch(
 	"/me/subscription",
 	verifyToken,
 	validateRequest(updateMySubscriptionSchema),
 	UserController.updateMySubscription,
+);
+
+router.patch(
+	"/update-profile",
+	verifyToken,
+	UserController.updateProfile,
 );
 
 

@@ -71,9 +71,25 @@ const updateMySubscription = catchAsync(
     });
   });
 
+
+const updateProfile = catchAsync(async (req, res) => {
+  const userId = req.user!.userId;
+  const payload = req.body;
+
+  const result = await UserServer.updateProfile(userId, payload);
+
+  sendResponse(res, {
+    httpStatusCode: StatusCodes.OK,
+    success: true,
+    message: "Profile updated successfully",
+    data: result,
+  });
+});
+
 export const UserController = {
   listUsers,
   getMe,
   updateMySubscription,
   updateUserRole,
+  updateProfile,
 };
