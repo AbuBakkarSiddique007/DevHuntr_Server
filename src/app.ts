@@ -10,6 +10,8 @@ import { StatusCodes } from "http-status-codes";
 
 const app: Application = express();
 
+app.set("etag", false);
+
 const { CLIENT_URL } = getEnvVars();
 const allowedOrigins = [
     CLIENT_URL,

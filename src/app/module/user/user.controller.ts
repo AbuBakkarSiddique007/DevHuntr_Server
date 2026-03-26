@@ -23,6 +23,11 @@ const listUsers = catchAsync(async (req, res) => {
 
 const getMe = catchAsync(async (req, res) => {
 
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.removeHeader("ETag");
+
   const me = await UserServer.getMe(req.user!.userId);
 
   sendResponse(res, {
