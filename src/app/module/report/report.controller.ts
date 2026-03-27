@@ -42,19 +42,19 @@ const deleteReport = catchAsync(
 
         const id = Array.isArray(idParam) ? idParam[0] : idParam;
 
-    if (!id) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "Invalid report id");
-    }
+        if (!id) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Invalid report id");
+        }
 
-    await ReportServer.deleteReport(id);
+        await ReportServer.deleteReport(id);
 
-    sendResponse(res, {
-        httpStatusCode: StatusCodes.OK,
-        success: true,
-        message: "Report deleted successfully",
-        data: null,
+        sendResponse(res, {
+            httpStatusCode: StatusCodes.OK,
+            success: true,
+            message: "Report deleted successfully",
+            data: null,
+        });
     });
-});
 
 const updateReportStatus = catchAsync(async (req, res) => {
     const idParam = req.params.id;

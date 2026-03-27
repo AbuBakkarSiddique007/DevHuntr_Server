@@ -56,8 +56,8 @@ const createReport = async (reporterId: string, payload: CreateReportInput) => {
 };
 
 const listReports = async (query: ListReportsQuery) => {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 10;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ReportWhereInput = {
