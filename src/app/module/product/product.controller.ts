@@ -125,7 +125,8 @@ const getProductById = catchAsync(async (req, res) => {
         throw new AppError(StatusCodes.BAD_REQUEST, "Invalid product id");
     }
 
-    const product = await ProductServer.getProductById(id);
+    const userId = req.user?.userId;
+    const product = await ProductServer.getProductById(id, userId);
 
     sendResponse(res, {
         httpStatusCode: StatusCodes.OK,

@@ -1,3 +1,5 @@
+import { PricingType } from "@prisma/client";
+
 export interface ListAcceptedProductsQuery {
   page?: number;
   limit?: number;
@@ -32,6 +34,7 @@ export interface CreateProductInput {
   description: string;
   externalLink: string;
   tagIds?: string[];
+  pricingType?: PricingType;
 }
 
 export type UpdateProductInput = Partial<CreateProductInput>;

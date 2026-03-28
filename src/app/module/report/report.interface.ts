@@ -11,4 +11,6 @@ export interface ListReportsQuery {
 
 export type UpdateReportStatusInput = {
   status: "RESOLVED" | "DISMISSED";
+  rejectProduct?: boolean;
+  rejectionReason?: string;
 };

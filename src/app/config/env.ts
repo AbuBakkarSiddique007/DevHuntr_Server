@@ -10,6 +10,8 @@ export interface EnvVars {
     CLIENT_URL?: string;
     ADMIN_EMAIL?: string;
     ADMIN_PASSWORD?: string;
+    STRIPE_SECRET_KEY?: string;
+    STRIPE_WEBHOOK_SECRET?: string;
 }
 
 export const getEnvVars = (): EnvVars => {
@@ -22,6 +24,8 @@ export const getEnvVars = (): EnvVars => {
         CLIENT_URL: process.env.CLIENT_URL,
         ADMIN_EMAIL: process.env.ADMIN_EMAIL,
         ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+        STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+        STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     };
 };
 

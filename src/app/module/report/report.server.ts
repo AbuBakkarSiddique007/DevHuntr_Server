@@ -123,57 +123,62 @@ const updateReportStatus = async (
 ) => {
     const existing = await prisma.report.findUnique({
         where: { id },
-        select: { id: true },
+        select: { id: true, productId: true },
     });
 
     if (!existing) {
         throw new AppError(StatusCodes.NOT_FOUND, "Report not found");
     }
 
-    const updated = await prisma.report.update({
-        where: { id },
-        data: {
-            status: payload.status,
-            resolvedById: moderatorId,
-            resolvedAt: new Date(),
-        },
-        include: {
-            reporter: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    photoUrl: true,
-                    role: true,
-                },
-            },
+    const result = await prisma.$transaction(async (tx) => {
 
-            resolvedBy: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    photoUrl: true,
-                    role: true,
-                },
+        // Resolve the specific report:
+        const updated = await tx.report.update({
+            where: { id },
+            data: {
+                status: payload.status,
+                resolvedById: moderatorId,
+                resolvedAt: new Date(),
             },
+            include: {
+                reporter: { select: { id: true, name: true, email: true, photoUrl: true, role: true } },
+                resolvedBy: { select: { id: true, name: true, email: true, photoUrl: true, role: true } },
+                product: { select: { id: true, name: true, image: true, status: true, upvoteCount: true, downvoteCount: true } },
+            },
+        });
 
-            product: {
-                select: {
-                    id: true,
-                    name: true,
-                    image: true,
-                    status: true,
-                    upvoteCount: true,
-                    downvoteCount: true,
+        // If taking action to reject the product:
+        if (payload.rejectProduct && payload.status === "RESOLVED") {
+            await tx.product.update({
+                where: { id: existing.productId },
+                data: {
+                    status: "REJECTED",
+                    rejectionReason: payload.rejectionReason || "Reported and confirmed by moderator",
+                    moderatedById: moderatorId,
+                    moderatedAt: new Date(),
                 },
-            },
-        },
+            });
+
+            // Bulk resolve all OTHER open reports for this same product:
+            await tx.report.updateMany({
+                where: {
+                    productId: existing.productId,
+                    status: "OPEN",
+                    id: { not: id } 
+                },
+                data: {
+                    status: "RESOLVED",
+                    resolvedById: moderatorId,
+                    resolvedAt: new Date(),
+                },
+            });
+        }
+
+        return updated;
     });
 
-    return updated;
+    return result;
 };
-
 
 const deleteReport = async (id: string) => {
 

@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { IndexRoutes } from "./app/routes/index.js";
+import { PaymentController } from "./app/module/payment/payment.controller.js";
 import { notFound } from "./app/middlewares/notFound.js";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler.js";
 import { getEnvVars } from "./app/config/env.js";
@@ -11,29 +12,39 @@ import { StatusCodes } from "http-status-codes";
 const app: Application = express();
 
 app.set("etag", false);
+app.set("trust proxy", 1);
+
 
 const { CLIENT_URL } = getEnvVars();
 const allowedOrigins = [
-    CLIENT_URL,
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+  CLIENT_URL,
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
 ].filter(Boolean) as string[];
 
 app.use(
-    cors({
-        origin: (origin, callback) => {
-            if (!origin) return callback(null, true);
-            if (allowedOrigins.includes(origin)) return callback(null, true);
-            return callback(new AppError(StatusCodes.FORBIDDEN, "Not allowed by CORS"));
-        },
-        credentials: true,
-    }),
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new AppError(StatusCodes.FORBIDDEN, "Not allowed by CORS"));
+    },
+    credentials: true,
+  }),
 );
 
 // Cookies:
 app.use(cookieParser());
 
 // Body parsers:
+// 1. Stripe Webhook:
+app.post(
+  "/api/v1/payments/webhook",
+  express.raw({ type: "application/json" }),
+  PaymentController.handleWebhook
+);
+
+// 2. Global JSON and URL encoded:
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -43,7 +54,7 @@ app.use("/api/v1", IndexRoutes);
 
 // Health check:
 app.get("/", (req: Request, res: Response) => {
-    res.send("Hello World, DevHuntr Server is running");
+  res.send("Hello World, DevHuntr Server is running");
 });
 
 

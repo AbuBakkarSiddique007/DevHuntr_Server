@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../lib/prisma.js";
 import AppError from "../../errorHelpers/AppError.js";
@@ -35,7 +36,7 @@ const castVote = async (userId: string, productId: string, payload: CastVoteBody
             },
         });
 
-
+        const productUpdateData: Prisma.ProductUpdateInput = {};
         let currentVoteType: VoteType | null = requestedVoteType;
 
 
@@ -48,6 +49,12 @@ const castVote = async (userId: string, productId: string, payload: CastVoteBody
                 },
             });
 
+            if (requestedVoteType === "UPVOTE") {
+                productUpdateData.upvoteCount = { increment: 1 };
+            } else {
+                productUpdateData.downvoteCount = { increment: 1 };
+            }
+
         } else if (existing.voteType === requestedVoteType) {
             await tx.vote.delete({
                 where: {
@@ -56,6 +63,12 @@ const castVote = async (userId: string, productId: string, payload: CastVoteBody
             });
 
             currentVoteType = null;
+
+            if (requestedVoteType === "UPVOTE") {
+                productUpdateData.upvoteCount = { decrement: 1 };
+            } else {
+                productUpdateData.downvoteCount = { decrement: 1 };
+            }
         } else {
             await tx.vote.update({
                 where: {
@@ -65,40 +78,32 @@ const castVote = async (userId: string, productId: string, payload: CastVoteBody
                     voteType: requestedVoteType
                 },
             });
+
+            if (requestedVoteType === "UPVOTE") {
+                // Change from DOWNVOTE to UPVOTE
+                productUpdateData.upvoteCount = { increment: 1 };
+                productUpdateData.downvoteCount = { decrement: 1 };
+            } else {
+                // Change from UPVOTE to DOWNVOTE
+                productUpdateData.downvoteCount = { increment: 1 };
+                productUpdateData.upvoteCount = { decrement: 1 };
+            }
         }
 
-        const [upvoteCount, downvoteCount] = await Promise.all([
-            tx.vote.count({
-                where: {
-                    productId,
-                    voteType: "UPVOTE"
-                }
-            }),
-
-            tx.vote.count({
-                where: {
-                    productId,
-                    voteType: "DOWNVOTE"
-                }
-            }),
-        ]);
-
-        await tx.product.update({
+        const updatedProduct = await tx.product.update({
             where: { id: productId },
-            data: {
-                upvoteCount,
-                downvoteCount,
-            },
+            data: productUpdateData,
             select: {
-                id: true
+                upvoteCount: true,
+                downvoteCount: true
             },
         });
 
         return {
             productId,
             voteType: currentVoteType,
-            upvoteCount,
-            downvoteCount,
+            upvoteCount: updatedProduct.upvoteCount,
+            downvoteCount: updatedProduct.downvoteCount,
         };
     });
 

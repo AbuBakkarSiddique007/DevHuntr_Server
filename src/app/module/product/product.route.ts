@@ -15,6 +15,8 @@ import {
     updateProductStatusSchema,
 } from "./product.validation.js";
 
+import verifyTokenOptional from "../../middlewares/verifyTokenOptional.js";
+
 const router = Router();
 
 // Public : 
@@ -74,7 +76,7 @@ router.patch(
     ProductController.toggleProductFeatured,
 );
 
-router.get("/:id", validateRequest({ params: productIdParamsSchema }), ProductController.getProductById);
+router.get("/:id", verifyTokenOptional, validateRequest({ params: productIdParamsSchema }), ProductController.getProductById);
 
 router.patch(
     "/:id",

@@ -41,8 +41,8 @@ const createComment = async (authorId: string, payload: CreateCommentInput) => {
 
 
 const listCommentsByProduct = async (productId: string, query: ListCommentsQuery) => {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 10);
     const skip = (page - 1) * limit;
 
     const where = {
@@ -50,30 +50,35 @@ const listCommentsByProduct = async (productId: string, query: ListCommentsQuery
         isDeleted: false,
     };
 
-    const [total, comments] = await Promise.all([
-        prisma.comment.count({ where }),
-        prisma.comment.findMany({
-            where,
-            skip,
-            take: limit,
-            orderBy: { createdAt: "desc" },
-            include: {
-                author: {
-                    select: {
-                        id: true,
-                        name: true,
-                        photoUrl: true,
-                        role: true
-                    }
+    try {
+        const [total, comments] = await Promise.all([
+            prisma.comment.count({ where }),
+            prisma.comment.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: "desc" },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                            photoUrl: true,
+                            role: true
+                        }
+                    },
                 },
-            },
-        }),
-    ]);
+            }),
+        ]);
 
-    return {
-        meta: { page, limit, total },
-        comments,
-    };
+        return {
+            meta: { page, limit, total },
+            comments,
+        };
+    } catch (error) {
+        console.error("Error in listCommentsByProduct:", error);
+        throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, "Error fetching comments from database");
+    }
 };
 
 export const CommentServer = {

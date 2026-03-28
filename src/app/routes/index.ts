@@ -8,6 +8,7 @@ import { VoteRoute } from "../module/vote/vote.route.js";
 import { ReportRoute } from "../module/report/report.route.js";
 import { StatisticsRoute } from "../module/statistics/statistics.route.js";
 import { CouponRoute } from "../module/coupon/coupon.route.js";
+import { PaymentRoute } from "../module/payment/payment.route.js";
 
 const router = Router();
 
@@ -28,6 +29,8 @@ router.use("/reports", ReportRoute);
 router.use("/statistics", StatisticsRoute);
 
 router.use("/coupons", CouponRoute);
+
+router.use("/payments", PaymentRoute);
 
 
 

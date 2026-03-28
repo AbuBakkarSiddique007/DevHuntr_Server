@@ -10,4 +10,11 @@ router.get("/",
     verifyAdmin,
     StatisticsController.getStatistics);
 
+router.get("/public",
+    StatisticsController.getPublicStatistics);
+
+router.get("/moderator",
+    verifyToken,
+    StatisticsController.getModeratorStatistics);
+
 export const StatisticsRoute = router;

@@ -16,7 +16,33 @@ const getStatistics = catchAsync(
         });
     });
 
+const getPublicStatistics = catchAsync(
+    async (_req, res) => {
+        const data = await StatisticsServer.getPublicStatistics();
+
+        sendResponse(res, {
+            httpStatusCode: StatusCodes.OK,
+            success: true,
+            message: "Public statistics fetched successfully",
+            data,
+        });
+    });
+
+const getModeratorStatistics = catchAsync(
+    async (req, res) => {
+        const moderatorId = (req as { user: { userId: string } }).user.userId;
+        const data = await StatisticsServer.getModeratorStatistics(moderatorId);
+
+        sendResponse(res, {
+            httpStatusCode: StatusCodes.OK,
+            success: true,
+            message: "Moderator statistics fetched successfully",
+            data,
+        });
+    });
 
 export const StatisticsController = {
     getStatistics,
+    getPublicStatistics,
+    getModeratorStatistics,
 };

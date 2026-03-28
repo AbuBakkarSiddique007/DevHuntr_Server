@@ -62,6 +62,87 @@ const getStatistics = async () => {
     };
 };
 
+const getPublicStatistics = async () => {
+    const [
+        totalUsers,
+        totalProducts,
+        totalComments,
+        totalVotes,
+    ] = await Promise.all([
+        prisma.user.count(),
+        prisma.product.count({ where: { status: ProductStatus.ACCEPTED } }),
+        prisma.comment.count(),
+        prisma.vote.count(),
+    ]);
+
+    return {
+        totalUsers,
+        totalProducts,
+        totalComments,
+        totalVotes,
+    };
+};
+
+const getModeratorStatistics = async (moderatorId: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [
+        pendingReviews,
+        activeReports,
+        resolvedToday,
+        dismissedToday,
+        acceptedToday,
+        rejectedToday,
+    ] = await Promise.all([
+        // Current queues:
+        prisma.product.count({ where: { status: ProductStatus.PENDING } }),
+        prisma.report.count({ where: { status: "OPEN" } }),
+
+        // Moderator's performance today:
+        prisma.report.count({
+            where: {
+                resolvedById: moderatorId,
+                status: "RESOLVED",
+                resolvedAt: { gte: today },
+            },
+        }),
+        prisma.report.count({
+            where: {
+                resolvedById: moderatorId,
+                status: "DISMISSED",
+                resolvedAt: { gte: today },
+            },
+        }),
+        prisma.product.count({
+            where: {
+                moderatedById: moderatorId,
+                status: ProductStatus.ACCEPTED,
+                moderatedAt: { gte: today },
+            },
+        }),
+        prisma.product.count({
+            where: {
+                moderatedById: moderatorId,
+                status: ProductStatus.REJECTED,
+                moderatedAt: { gte: today },
+            },
+        }),
+    ]);
+
+    return {
+        pendingReviews,
+        activeReports,
+        resolvedToday,
+        dismissedToday,
+        acceptedToday,
+        rejectedToday,
+        totalActionsToday: resolvedToday + dismissedToday + acceptedToday + rejectedToday,
+    };
+};
+
 export const StatisticsServer = {
     getStatistics,
+    getPublicStatistics,
+    getModeratorStatistics,
 };

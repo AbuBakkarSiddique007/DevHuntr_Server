@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { Prisma, ProductStatus, Role } from "@prisma/client";
+import { Prisma, ProductStatus, Role, PricingType } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
 import AppError from "../../errorHelpers/AppError.js";
 
@@ -9,7 +9,7 @@ import type {
     ListModeratedProductsQuery,
     UpdateProductInput,
     UpdateProductStatusInput,
-} from "./product.interface";
+} from "./product.interface.js";
 
 const productInclude = {
     productTags: { include: { tag: true } },
@@ -97,6 +97,7 @@ const createProduct = async (ownerId: string, payload: CreateProductInput) => {
             image: payload.image,
             description: payload.description,
             externalLink: payload.externalLink,
+            pricingType: payload.pricingType || PricingType.FREE,
             ownerId,
             ...(tagIds.length
                 ? {
@@ -153,7 +154,12 @@ const listAcceptedProducts = async (query: ListAcceptedProductsQuery) => {
     const productsWithCounts = await withOpenReportCounts(products);
 
     return {
-        meta: { page, limit, total },
+        meta: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+        },
         products: productsWithCounts,
     };
 };
@@ -186,7 +192,12 @@ const listFeaturedProducts = async (page = 1, limit = 10) => {
 
 
     return {
-        meta: { page, limit, total },
+        meta: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+        },
         products: productsWithCounts,
     };
 };
@@ -342,18 +353,78 @@ const listModeratedProducts = async (
     };
 };
 
-const getProductById = async (id: string) => {
+const getProductById = async (id: string, userId?: string) => {
     const product = await prisma.product.findUnique({
         where: { id },
-        include: productInclude,
+        include: {
+            ...productInclude,
+            comments: {
+                where: { isDeleted: false },
+                include: {
+                    author: {
+                        select: { id: true, name: true, photoUrl: true }
+                    }
+                },
+                orderBy: { createdAt: "desc" }
+            }
+        },
     });
-
 
     if (!product) {
         throw new AppError(StatusCodes.NOT_FOUND, "Product not found");
     }
 
-    return withOpenReportCount(product);
+    const openReportCount = await prisma.report.count({
+        where: { productId: product.id, status: "OPEN" },
+    });
+
+    const baseResponse = {
+        ...toProductResponse(product),
+        openReportCount,
+        comments: product.comments,
+    };
+
+    // Access Control Logic
+    if (product.pricingType === PricingType.PREMIUM) {
+        let isAuthorized = false;
+
+        if (userId) {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { id: true, role: true, isSubscribed: true }
+            });
+
+            if (user && (user.isSubscribed || user.role === Role.ADMIN || user.role === Role.MODERATOR)) {
+                isAuthorized = true;
+            }
+        }
+
+        if (!isAuthorized) {
+            return {
+                id: product.id,
+                name: product.name,
+                image: product.image,
+                pricingType: product.pricingType,
+                isFeatured: product.isFeatured,
+                status: product.status,
+                upvoteCount: product.upvoteCount,
+                downvoteCount: product.downvoteCount,
+                isLocked: true,
+
+                description: null,
+                externalLink: null,
+                tags: [],
+                comments: [],
+                owner: null,
+                openReportCount: 0,
+            };
+        }
+    }
+
+    return {
+        ...baseResponse,
+        isLocked: false,
+    };
 };
 
 const assertOwner = async (productId: string, userId: string) => {
@@ -409,6 +480,7 @@ const updateProduct = async (productId: string, userId: string, payload: UpdateP
                 image: payload.image,
                 description: payload.description,
                 externalLink: payload.externalLink,
+                pricingType: payload.pricingType,
             },
             include: productInclude,
         });

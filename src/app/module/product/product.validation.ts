@@ -6,6 +6,7 @@ export const createProductSchema = z.object({
   description: z.string().min(1),
   externalLink: z.string().url(),
   tagIds: z.array(z.string().uuid()).optional(),
+  pricingType: z.enum(["FREE", "PREMIUM"]).optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -14,6 +15,7 @@ export const updateProductSchema = z.object({
   description: z.string().min(1).optional(),
   externalLink: z.string().url().optional(),
   tagIds: z.array(z.string().uuid()).optional(),
+  pricingType: z.enum(["FREE", "PREMIUM"]).optional(),
 });
 
 export const productIdParamsSchema = z.object({
