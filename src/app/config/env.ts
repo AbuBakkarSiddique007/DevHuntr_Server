@@ -16,7 +16,7 @@ export interface EnvVars {
 
 export const getEnvVars = (): EnvVars => {
     return {
-        NODE_ENV: process.env.NODE_ENV ?? 'development',
+        NODE_ENV: process.env.NODE_ENV ?? 'production',
         PORT: process.env.PORT,
         DATABASE_URL: process.env.DATABASE_URL,
         JWT_SECRET: process.env.JWT_SECRET,
