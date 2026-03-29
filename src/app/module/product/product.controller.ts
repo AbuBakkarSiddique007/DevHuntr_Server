@@ -42,9 +42,8 @@ const listAcceptedProducts = catchAsync(async (req, res) => {
 
 const listFeaturedProducts = catchAsync(async (req, res) => {
     const query = req.query as ListFeedProductsQuery;
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
-
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 10);
 
     const result = await ProductServer.listFeaturedProducts(page, limit);
 
@@ -58,8 +57,8 @@ const listFeaturedProducts = catchAsync(async (req, res) => {
 
 const listTrendingProducts = catchAsync(async (req, res) => {
     const query = req.query as ListFeedProductsQuery;
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 10);
 
     const result = await ProductServer.listTrendingProducts(page, limit);
 
