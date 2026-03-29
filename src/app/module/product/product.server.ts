@@ -137,6 +137,10 @@ const listAcceptedProducts = async (query: ListAcceptedProductsQuery) => {
         };
     }
 
+    if (query.pricingType && (query.pricingType === "FREE" || query.pricingType === "PREMIUM")) {
+        where.pricingType = query.pricingType as PricingType;
+    }
+
     const [total, products] = await Promise.all([
         prisma.product.count({ where }),
         prisma.product.findMany({

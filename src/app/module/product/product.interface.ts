@@ -5,6 +5,7 @@ export interface ListAcceptedProductsQuery {
   limit?: number;
   search?: string;
   tag?: string;
+  pricingType?: string;
 }
 
 export interface ListMyProductsQuery {
