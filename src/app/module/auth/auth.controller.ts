@@ -5,7 +5,7 @@ import sendResponse from "../../shared/sendResponse.js";
 import { AuthServer } from "./auth.server.js";
 import { getEnvVars } from "../../config/env.js";
 
-const ACCESS_TOKEN_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
+const ACCESS_TOKEN_COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const REFRESH_TOKEN_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 const getCookieSecurity = () => {
