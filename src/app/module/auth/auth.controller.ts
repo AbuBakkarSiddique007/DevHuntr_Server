@@ -93,13 +93,11 @@ const register = catchAsync(async (req, res) => {
         }
     );
 
-    const data = getEnvVars().NODE_ENV === "production" ? { user: result.user } : result;
-
     sendResponse(res, {
         httpStatusCode: StatusCodes.CREATED,
         success: true,
         message: "User registered successfully",
-        data,
+        data: result,
     });
 });
 
@@ -109,13 +107,11 @@ const login = catchAsync(async (req, res) => {
     setAuthCookies(
         res, { accessToken: result.token, refreshToken: result.refreshToken });
 
-    const data = getEnvVars().NODE_ENV === "production" ? { user: result.user } : result;
-
     sendResponse(res, {
         httpStatusCode: StatusCodes.OK,
         success: true,
         message: "User logged in successfully",
-        data,
+        data: result,
     });
 });
 
@@ -131,7 +127,7 @@ const logout = catchAsync(async (_req, res) => {
 });
 
 const refresh = catchAsync(async (req, res) => {
-    const token = req.cookies?.refreshToken as string | undefined;
+    const token = (req.cookies?.refreshToken || req.body?.refreshToken || req.headers["x-refresh-token"]) as string | undefined;
     const result = await AuthServer.refresh(token || "");
 
     setAuthCookies(
@@ -145,7 +141,7 @@ const refresh = catchAsync(async (req, res) => {
         httpStatusCode: StatusCodes.OK,
         success: true,
         message: "Access token refreshed successfully",
-        data: null,
+        data: result,
     });
 });
 

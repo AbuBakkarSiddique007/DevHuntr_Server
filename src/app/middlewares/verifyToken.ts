@@ -14,7 +14,9 @@ type JwtPayload = {
 
 const verifyToken: RequestHandler = (req, _res, next) => {
   const cookieToken = req.cookies?.accessToken;
-  const token = cookieToken;
+  const authHeader = req.headers.authorization;
+  const headerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : undefined;
+  const token = cookieToken || headerToken;
 
   if (!token) {
     return next(new AppError(StatusCodes.UNAUTHORIZED, "Token is missing"));

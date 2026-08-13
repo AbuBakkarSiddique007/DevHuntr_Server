@@ -9,62 +9,43 @@ const normalizeEmail = (value: string) => value.trim().toLowerCase();
 export const seedAdminIfEnabled = async () => {
   if (!isEnabled()) return;
 
-  const emailRaw = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
-  const shouldResetPassword = process.env.SEED_ADMIN_RESET_PASSWORD === "true";
+  try {
+    const shouldResetPassword = process.env.SEED_ADMIN_RESET_PASSWORD === "true";
 
-  if (!emailRaw || !password) {
-    throw new Error(
-      "SEED_ADMIN_ON_START is true but ADMIN_EMAIL/ADMIN_PASSWORD are missing.",
-    );
-  }
+    const demoAccounts = [
+      { name: "Demo User", email: "user1@gmail.com", password: "password123", role: Role.USER },
+      { name: "Demo Moderator", email: "moderator@gmail.com", password: "password123", role: Role.MODERATOR },
+      { name: "Demo Admin", email: process.env.ADMIN_EMAIL || "devadmin@gmail.com", password: process.env.ADMIN_PASSWORD || "Admin12345", role: Role.ADMIN },
+    ];
 
-  const email = normalizeEmail(emailRaw);
-
-  const existingAdmin = await prisma.user.findFirst({ where: { role: Role.ADMIN } });
-  if (existingAdmin) {
-    const existingAdminEmail = normalizeEmail(existingAdmin.email);
-    if (existingAdminEmail !== email) return;
-
-    if (shouldResetPassword) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await prisma.user.update({
-        where: { id: existingAdmin.id },
-        data: { password: hashedPassword },
+    for (const account of demoAccounts) {
+      const email = normalizeEmail(account.email);
+      const existing = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
       });
+
+      const hashedPassword = await bcrypt.hash(account.password, 10);
+
+      if (!existing) {
+        await prisma.user.create({
+          data: {
+            name: account.name,
+            email,
+            password: hashedPassword,
+            role: account.role,
+          },
+        });
+      } else if (shouldResetPassword) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            password: hashedPassword,
+            role: account.role,
+          },
+        });
+      }
     }
-
-    return;
+  } catch (err) {
+    console.warn("Demo account seeding notice:", err);
   }
-
-  const existingByEmail = await prisma.user.findFirst({
-    where: {
-      email: {
-        equals: email,
-        mode: "insensitive",
-      },
-    },
-  });
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  if (existingByEmail) {
-    await prisma.user.update({
-      where: { id: existingByEmail.id },
-      data: {
-        role: Role.ADMIN,
-        ...(shouldResetPassword ? { password: hashedPassword } : {}),
-      },
-    });
-    return;
-  }
-
-  await prisma.user.create({
-    data: {
-      name: "Admin",
-      email,
-      password: hashedPassword,
-      role: Role.ADMIN,
-    },
-  });
 };
