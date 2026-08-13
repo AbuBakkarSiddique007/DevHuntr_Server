@@ -15,6 +15,7 @@ import {
 const createAccessToken = (payload: AuthTokenPayload): string => {
     const secret = requireEnv("JWT_SECRET");
     const { JWT_EXPIRES_IN } = getEnvVars();
+    
     const expiresIn = (JWT_EXPIRES_IN || "1d") as SignOptions["expiresIn"];
 
     return jwt.sign(payload, secret, { expiresIn });
